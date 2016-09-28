@@ -1,7 +1,10 @@
 package xiyou.mobile.android.elisten;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.Image;
@@ -21,29 +24,44 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,SeekBar.OnSeekBarChangeListener
 {
 
+    public static final String ACTION="xiyou.mobile.android.elisten.fresh";
+
     ExpandableListView gedan;
-    ImageButton create_gedan;
+    private ImageButton create_gedan,next,pre,start;
+    private SeekBar seekbar;
+    private int progress=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        startService(new Intent(this,PlayerService.class));
+        startService(new Intent(this, PlayerService.class));
         setContentView(R.layout.activity_main);
 
+        seekbar=(SeekBar)findViewById(R.id.seekBar);
+        start=(ImageButton)findViewById(R.id.b_start);
+        pre=(ImageButton)findViewById(R.id.b_prev);
+        next=(ImageButton)findViewById(R.id.b_next);
+        next.setOnClickListener(this);
+        start.setOnClickListener(this);
+        pre.setOnClickListener(this);
+        seekbar.setOnSeekBarChangeListener(this);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         create_gedan=(ImageButton)findViewById(R.id.button_new_gedan);
         create_gedan.setOnClickListener(this);
         gedan=(ExpandableListView)findViewById(R.id.list_gedan);
         gedan.setAdapter(new GedanAdapter(this));
+
+        registerReceiver(new FreshReceiver(),new IntentFilter("xiyou.mobile.android.elisten.fresh"));
     }
 
     @Override
@@ -78,6 +96,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         {
             case R.id.button_new_gedan:
                 break;
+            case R.id.b_next:
+                break;
+            case R.id.b_start:
+                Intent i=new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_PLAY);
+                sendBroadcast(i);
+                break;
+            case R.id.b_prev:
+                break;
+        }
+    }
+
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        this.progress=progress;
+        Log.e("aaa",""+progress);
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        Intent i=new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_GOTO).putExtra(PlayerService.ARGS,progress);
+        sendBroadcast(i);
+    }
+
+    private class FreshReceiver extends BroadcastReceiver
+    {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            seekbar.setProgress(intent.getIntExtra("args",0));
         }
     }
 }

@@ -12,4 +12,51 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="xiyou.mobile.android.elisten.MainActivity">
 
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/seekBar"
+        android:layout_gravity="center_horizontal"
+        android:thumb="@drawable/abc_list_divider_mtrl_alpha" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:id="@+id/b_prev"
+            android:layout_margin="10dp"
+            android:src="@drawable/prev"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            android:elevation="0dp"
+            android:adjustViewBounds="false" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:background="@android:color/transparent"
+            android:id="@+id/b_start"
+            android:src="@drawable/play"
+            android:scaleType="fitCenter"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="10dp"
+            android:id="@+id/b_next"
+            android:src="@drawable/next"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            android:elevation="0dp" />
+
+    </LinearLayout>
 </LinearLayout>
