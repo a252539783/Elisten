@@ -25,6 +25,9 @@ import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,11 +36,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 {
 
     public static final String ACTION="xiyou.mobile.android.elisten.fresh";
+    public static final String ACTION_TYPE="type";
+
+    public static final int ACTION_GET=0;
+    public static final int ACTION_FRESH=1;
+
+    public static final String GET_SONG="song";
+    public static final String GET_GESHOU="geshou";
+    public static final String GET_GEDAN="gedan";
 
     ExpandableListView gedan;
     private ImageButton create_gedan,next,pre,start;
     private SeekBar seekbar;
     private int progress=0;
+    private TextView text_song,text_geshou;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +59,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         seekbar=(SeekBar)findViewById(R.id.seekBar);
+        text_song=(TextView)findViewById(R.id.text_song);
+        text_geshou=(TextView)findViewById(R.id.text_geshou);
         start=(ImageButton)findViewById(R.id.b_start);
         pre=(ImageButton)findViewById(R.id.b_prev);
         next=(ImageButton)findViewById(R.id.b_next);
@@ -61,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         gedan=(ExpandableListView)findViewById(R.id.list_gedan);
         gedan.setAdapter(new GedanAdapter(this));
 
+        sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_GET));
         registerReceiver(new FreshReceiver(),new IntentFilter("xiyou.mobile.android.elisten.fresh"));
     }
 
@@ -129,8 +144,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     {
 
         @Override
-        public void onReceive(Context context, Intent intent) {
-            seekbar.setProgress(intent.getIntExtra("args",0));
+        public void onReceive(Context context, Intent i) {
+            switch (i.getIntExtra(PlayerService.ACTION_TYPE,0))
+            {
+                case ACTION_FRESH:
+                    seekbar.setProgress(i.getIntExtra(PlayerService.ARGS,0));
+                    break;
+                case ACTION_GET:
+                    text_song.setText(i.getStringExtra(GET_SONG));
+                    break;
+            }
         }
     }
 }

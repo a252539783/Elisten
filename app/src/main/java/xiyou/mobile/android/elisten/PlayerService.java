@@ -16,12 +16,14 @@ import java.util.ArrayList;
 /**
  * Created by user on 2016/9/26.
  */
-public class PlayerService extends Service implements MediaPlayer.OnErrorListener{
+public class PlayerService extends Service implements MediaPlayer.OnCompletionListener{
 
     public static final String ACTION="xiyou.mobile.android.elisten.player";
     public static final String ACTION_TYPE="action_type";
     public static final String ARGS="args";
     public static final String GEDAN="gedan";
+
+    public static final int ACTION_GET=5;
 
     public static final int ACTION_PLAY=0;
     public static final int ACTION_STOP=1;
@@ -32,8 +34,8 @@ public class PlayerService extends Service implements MediaPlayer.OnErrorListene
     public static final int MODE_SINGLE=0;
 
     private MediaPlayer mp;
-    private String currentSong="";
-    private ArrayList<Song> songs;
+    private int currentSong=-1;
+    private ArrayList songs;
     private CmdReceiver cr;
     private int fps=0;
     private int play_mode=0;
@@ -57,6 +59,7 @@ public class PlayerService extends Service implements MediaPlayer.OnErrorListene
         IntentFilter filter=new IntentFilter();
 
         mp=new MediaPlayer();
+        mp.setOnCompletionListener(this);
         filter.addAction("xiyou.mobile.android.elisten.player");
         cr=new CmdReceiver();
         registerReceiver(cr, filter);
@@ -69,11 +72,8 @@ public class PlayerService extends Service implements MediaPlayer.OnErrorListene
     }
 
     @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        Log.e("aa", mp.toString());
-        return false;
+    public void onCompletion(MediaPlayer mp) {
     }
-
 
 
     private class CmdReceiver extends BroadcastReceiver implements Runnable
@@ -84,8 +84,12 @@ public class PlayerService extends Service implements MediaPlayer.OnErrorListene
 
             switch (i.getIntExtra(ACTION_TYPE,0))
             {
+                case ACTION_GET:
+                    if (mp.isPlaying())
+                    sendBroadcast(new Intent(MainActivity.ACTION).putExtra(MainActivity.ACTION_TYPE,MainActivity.ACTION_GET).putExtra(MainActivity.GET_SONG,((Song)songs.get(currentSong)).name));
+                    break;
                 case ACTION_PLAY:
-                    if (i.getStringExtra(ARGS)==null||currentSong.equals(i.getStringExtra(ARGS)))
+                    if (i.getIntExtra(ARGS,-2)==-2||currentSong==i.getIntExtra(ARGS,-2))
                     {
                         if (mp.isPlaying())
                         {
@@ -98,9 +102,12 @@ public class PlayerService extends Service implements MediaPlayer.OnErrorListene
                         }
                     }else
                     {
+
+                        currentSong=i.getIntExtra(ARGS,-2);
+                        songs=i.getParcelableArrayListExtra(GEDAN);
                         mp.reset();
                         try {
-                            mp.setDataSource(i.getStringExtra(ARGS));
+                            mp.setDataSource(((Song)songs.get(i.getIntExtra(ARGS,0))).path);
                             mp.prepare();
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -109,8 +116,7 @@ public class PlayerService extends Service implements MediaPlayer.OnErrorListene
                         fps=mp.getDuration()/300;
                         if (!fresh)
                             new Thread(this).start();
-                        currentSong=i.getStringExtra(ARGS);
-                        songs=i.getParcelableExtra(GEDAN);
+
                     }
                     break;
                 case ACTION_GOTO:
@@ -128,7 +134,7 @@ public class PlayerService extends Service implements MediaPlayer.OnErrorListene
             fresh=true;
             while (mp.isPlaying())
             {
-                sendBroadcast(new Intent(MainActivity.ACTION).putExtra(ARGS,(int)((float)mp.getCurrentPosition()/mp.getDuration()*100)));
+                sendBroadcast(new Intent(MainActivity.ACTION).putExtra(MainActivity.ACTION_TYPE,MainActivity.ACTION_FRESH).putExtra(ARGS,(int)((float)mp.getCurrentPosition()/mp.getDuration()*100)));
 
                 try {
                     Thread.sleep(fps);
