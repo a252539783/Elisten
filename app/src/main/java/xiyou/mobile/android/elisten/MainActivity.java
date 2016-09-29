@@ -41,12 +41,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final int ACTION_GET=0;
     public static final int ACTION_FRESH=1;
 
+    public static final String GET_STATE="state";
     public static final String GET_SONG="song";
     public static final String GET_GESHOU="geshou";
+    public static final String GET_MODE="mode";
     public static final String GET_GEDAN="gedan";
 
-    ExpandableListView gedan;
-    private ImageButton create_gedan,next,pre,start;
+    private ExpandableListView gedan;
+    private ImageButton create_gedan,next,pre,start,switch_mode;
+    private DrawerLayout drawer;
+
     private SeekBar seekbar;
     private int progress=0;
     private TextView text_song,text_geshou;
@@ -59,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         seekbar=(SeekBar)findViewById(R.id.seekBar);
+        switch_mode=(ImageButton)findViewById(R.id.switch_mode);
         text_song=(TextView)findViewById(R.id.text_song);
         text_geshou=(TextView)findViewById(R.id.text_geshou);
         start=(ImageButton)findViewById(R.id.b_start);
@@ -67,21 +72,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         next.setOnClickListener(this);
         start.setOnClickListener(this);
         pre.setOnClickListener(this);
+        switch_mode.setOnClickListener(this);
         seekbar.setOnSeekBarChangeListener(this);
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
+        drawer = (DrawerLayout) findViewById(R.id.main_layout);
         create_gedan=(ImageButton)findViewById(R.id.button_new_gedan);
         create_gedan.setOnClickListener(this);
         gedan=(ExpandableListView)findViewById(R.id.list_gedan);
         gedan.setAdapter(new GedanAdapter(this));
 
-        sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_GET));
-        registerReceiver(new FreshReceiver(),new IntentFilter("xiyou.mobile.android.elisten.fresh"));
+        registerReceiver(new FreshReceiver(),new IntentFilter(ACTION));
+        freshUI();
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -97,27 +103,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        freshUI();
+        super.onResume();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId())
         {
+            case R.id.switch_mode:
+                sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_SETMODE));
+                break;
             case R.id.button_new_gedan:
                 break;
             case R.id.b_next:
+                sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_NEXT));
                 break;
             case R.id.b_start:
                 Intent i=new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_PLAY);
                 sendBroadcast(i);
                 break;
             case R.id.b_prev:
+                sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_PREV));
                 break;
         }
     }
@@ -126,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         this.progress=progress;
-        Log.e("aaa",""+progress);
     }
 
     @Override
@@ -140,20 +151,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sendBroadcast(i);
     }
 
+    private void freshUI()
+    {
+        sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_GET));
+
+    }
+
+
     private class FreshReceiver extends BroadcastReceiver
     {
 
         @Override
         public void onReceive(Context context, Intent i) {
-            switch (i.getIntExtra(PlayerService.ACTION_TYPE,0))
+            switch (i.getIntExtra(ACTION_TYPE,0))
             {
                 case ACTION_FRESH:
                     seekbar.setProgress(i.getIntExtra(PlayerService.ARGS,0));
                     break;
                 case ACTION_GET:
                     text_song.setText(i.getStringExtra(GET_SONG));
+                    text_geshou.setText(i.getStringExtra(GET_GESHOU));
+
+                    switch (i.getIntExtra(GET_MODE,0))
+                    {
+                        case PlayerService.MODE_CIRCLE:
+                            switch_mode.setImageResource(R.drawable.circle);
+                            break;
+                        case PlayerService.MODE_NORMAL:
+                            switch_mode.setImageResource(R.drawable.normal);
+                            break;
+                        case PlayerService.MODE_RAND:
+                            switch_mode.setImageResource(R.drawable.rand);
+                            break;
+                        case PlayerService.MODE_SINGLECIRCLE:
+                            switch_mode.setImageResource(R.drawable.scircle);
+                            break;
+                    }
+
+                    if (i.getBooleanExtra(GET_STATE,true))
+                    {
+                        start.setImageResource(R.drawable.pause);
+                    }
+                    else
+                    {
+                        start.setImageResource(R.drawable.play);
+                    }
                     break;
             }
+            drawer.invalidate();
         }
     }
 }

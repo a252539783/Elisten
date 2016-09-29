@@ -15,22 +15,20 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="vertical"
-        android:layout_weight="2">
+        android:layout_weight="2"
+        android:orientation="vertical">
 
         <TextView
-            android:text=" "
+            android:id="@+id/text_song"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:id="@+id/text_song"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <TextView
-            android:text=" "
+            android:id="@+id/text_geshou"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_geshou" />
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <RelativeLayout
@@ -47,8 +45,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_below="@id/seekBar"
             android:layout_height="wrap_content"
+            android:layout_below="@id/seekBar"
             android:layout_gravity="center_horizontal"
             android:orientation="horizontal">
 
@@ -87,10 +85,13 @@
 
         <ImageButton
             android:layout_width="wrap_content"
-            android:layout_below="@id/seekBar"
             android:layout_height="wrap_content"
+            android:layout_below="@id/seekBar"
+            android:id="@+id/switch_mode"
             android:background="@drawable/b_bg"
-            android:src="@drawable/normal"/>
+            android:src="@drawable/normal" />
 
     </RelativeLayout>
+
+
 </LinearLayout>
