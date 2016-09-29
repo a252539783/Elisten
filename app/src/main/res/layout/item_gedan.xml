@@ -10,7 +10,8 @@
         android:text="aa"
         android:layout_margin="5dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:id="@+id/text_gedan_name"/>
+        android:id="@+id/text_gedan_name"
+        android:textColor="@android:color/holo_orange_light" />
 
     <TextView
         android:layout_width="match_parent"
@@ -18,6 +19,7 @@
         android:gravity="right"
         android:text="1"
         android:layout_margin="5dp"
+        android:textColor="@android:color/holo_orange_light"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:id="@+id/text_gedan_num"/>
 
