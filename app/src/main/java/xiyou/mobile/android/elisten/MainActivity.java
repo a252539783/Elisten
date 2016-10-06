@@ -1,5 +1,8 @@
 package xiyou.mobile.android.elisten;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -61,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         startService(new Intent(this, PlayerService.class));
         setContentView(R.layout.activity_main);
+
+        NotificationManager nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        nm.notify(1, new Notification.Builder(this).setContentText("aaaa").setTicker("aaaaa").setAutoCancel(true).setContentTitle("aaa").setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),0)).getNotification());
 
         seekbar=(SeekBar)findViewById(R.id.seekBar);
         switch_mode=(ImageButton)findViewById(R.id.switch_mode);
@@ -197,8 +203,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         start.setImageResource(R.drawable.play);
                     }
                     break;
+
+
             }
-            drawer.invalidate();
+            seekbar.setProgress(i.getIntExtra(PlayerService.ARGS,0));
+            //drawer.invalidate();
         }
     }
 }
