@@ -3,6 +3,8 @@ package xiyou.mobile.android.elisten;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProvider;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -27,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
+import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -57,16 +60,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SeekBar seekbar;
     private int progress=0;
     private TextView text_song,text_geshou;
+    private RemoteViews rv;
+    private AppWidgetManager awm;
+    private Notification n;
+    private NotificationManager nm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        awm=AppWidgetManager.getInstance(this);
         startService(new Intent(this, PlayerService.class));
         setContentView(R.layout.activity_main);
 
-        NotificationManager nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        nm.notify(1, new Notification.Builder(this).setContentText("aaaa").setTicker("aaaaa").setAutoCancel(true).setContentTitle("aaa").setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),0)).getNotification());
+        nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        n=new Notification();
+        n.icon=R.mipmap.ic_launcher;
+        rv=new RemoteViews(getPackageName(),R.layout.noti_layout);
+        rv.setOnClickPendingIntent(R.id.b_n_next,PendingIntent.getBroadcast(this,0,new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_NEXT),0));
+        rv.setOnClickPendingIntent(R.id.b_n_prev,PendingIntent.getBroadcast(this,1,new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_PREV),0));
+        rv.setOnClickPendingIntent(R.id.b_n_start,PendingIntent.getBroadcast(this,2,new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_PLAY),0));
+        n.contentView=rv;n.flags=Notification.FLAG_NO_CLEAR;
+        n.contentIntent=PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),0 );
+
+        nm.notify(111, n);
 
         seekbar=(SeekBar)findViewById(R.id.seekBar);
         switch_mode=(ImageButton)findViewById(R.id.switch_mode);
@@ -160,7 +177,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void freshUI()
     {
         sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_GET));
+    }
 
+    private void freshMoti(Intent i)
+    {
+        rv.setTextViewText(R.id.t_n_song,i.getStringExtra(GET_SONG));
+        rv.setTextViewText(R.id.t_n_songer,i.getStringExtra(GET_GESHOU));
+        if (i.getBooleanExtra(GET_STATE,true))
+        {
+            rv.setImageViewResource(R.id.b_n_start,R.drawable.pause);
+        }
+        else
+        {
+            rv.setImageViewResource(R.id.b_n_start,R.drawable.play);
+        }
+        awm.updateAppWidget(new ComponentName(this,AppWidgetProvider.class),rv);
+
+        nm.notify(111,n);
     }
 
 
@@ -202,12 +235,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     {
                         start.setImageResource(R.drawable.play);
                     }
-                    break;
 
+                    freshMoti(i);
+                    break;
 
             }
             seekbar.setProgress(i.getIntExtra(PlayerService.ARGS,0));
-            //drawer.invalidate();
+
         }
     }
 }
