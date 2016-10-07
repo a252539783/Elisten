@@ -1,5 +1,8 @@
 package xiyou.mobile.android.elisten;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -23,6 +26,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public static final String GEDAN="gedan";
 
     public static final int ACTION_GET=5;
+    public static final int ACTION_INIT=6;
 
     public static final int ACTION_PLAY=0;
     public static final int ACTION_SETMODE=1;
@@ -42,6 +46,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     private CmdReceiver cr;
     private int fps=0;
     private int play_mode=3;
+    private boolean loading=false;
     private boolean running=false;
     private Random rand;
 
@@ -100,7 +105,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 mp.seekTo(0);
                 break;
             case MODE_RAND:
-                currentSong=rand.nextInt()%songs.size();
+                currentSong=Math.abs(rand.nextInt())%songs.size();
                 loadSong();
                 startSong();
                 break;
@@ -129,6 +134,11 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
             switch (i.getIntExtra(ACTION_TYPE,0))
             {
+                case ACTION_INIT:
+                    songs=i.getParcelableArrayListExtra(GEDAN);
+                    //currentSong=0;
+                    //play_mode=MODE_NORMAL;
+                    break;
                 case ACTION_GET:
                     break;
                 case ACTION_PLAY:
@@ -143,9 +153,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                         }
                     }else
                     {
-
                         currentSong=i.getIntExtra(ARGS,-2);
-                        songs=i.getParcelableArrayListExtra(GEDAN);
                         loadSong();
                         fps=mp.getDuration()/300;
                         startSong();
@@ -206,24 +214,32 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
     private void next(int n)
     {
+        if (loading)
+            return ;
+
         if (play_mode==MODE_RAND)
         {
-            currentSong=rand.nextInt()%songs.size();
+            currentSong=Math.abs(rand.nextInt())%songs.size();
         }
         else
         {
-            if (currentSong==songs.size()-1)
+            if (currentSong==songs.size()-1&&n==1)
             {
                 currentSong=0;
+            }else if (currentSong==0&&n==-1)
+            {
+                currentSong=songs.size()-1;
             }
             else
             {
                 currentSong+=n;
             }
         }
-
+        loading=true;
         loadSong();
         startSong();
+
+        loading=false;
     }
 
     private void startSong()
@@ -236,6 +252,6 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     private void freshUI()
     {
         if (currentSong!=-1)
-        sendBroadcast(new Intent(MainActivity.ACTION).putExtra(MainActivity.ACTION_TYPE,MainActivity.ACTION_GET).putExtra(MainActivity.GET_SONG,((Song)songs.get(currentSong)).name).putExtra(MainActivity.GET_GESHOU,((Song)songs.get(currentSong)).songer).putExtra(MainActivity.GET_STATE,mp.isPlaying()).putExtra(MainActivity.GET_MODE,play_mode));
+        sendBroadcast(new Intent(MainActivity.ACTION).putExtra(MainActivity.ACTION_TYPE,MainActivity.ACTION_GET).putExtra(MainActivity.GET_SONG,((Song)songs.get(currentSong)).name).putExtra(MainActivity.GET_GESHOU,((Song)songs.get(currentSong)).songer).putExtra(MainActivity.GET_STATE,mp.isPlaying()).putExtra(MainActivity.GET_MODE,play_mode).putExtra(ARGS,(int)((float)mp.getCurrentPosition()/mp.getDuration()*100)));
     }
 }

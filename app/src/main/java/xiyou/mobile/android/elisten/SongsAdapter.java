@@ -55,6 +55,7 @@ public class SongsAdapter extends BaseAdapter implements Runnable,View.OnClickLi
             count++;
         }
         c.close();
+        context.sendBroadcast(new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_INIT).putExtra(PlayerService.GEDAN,songs));
     }
 
     @Override
@@ -104,7 +105,7 @@ public class SongsAdapter extends BaseAdapter implements Runnable,View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        Intent i=new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_PLAY).putExtra(PlayerService.GEDAN,songs).putExtra(PlayerService.ARGS, v.getId());
+        Intent i=new Intent(PlayerService.ACTION).putExtra(PlayerService.ACTION_TYPE,PlayerService.ACTION_PLAY).putExtra(PlayerService.ARGS, v.getId());
         context.sendBroadcast(i);
     }
 }

@@ -9,13 +9,15 @@
         android:text="song"
         android:layout_margin="5dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        android:id="@+id/text_song_name"/>
+        android:id="@+id/text_song_name"
+        android:textColor="#d17a00" />
 
     <TextView
         android:layout_margin="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        android:textColor="#d17a00"
         android:text="songer"
         android:id="@+id/text_song_geshou"/>
 
